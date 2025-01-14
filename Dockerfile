@@ -5,7 +5,10 @@ RUN npm install -g pnpm
 # Move files into the image and install
 WORKDIR /app
 COPY ./service ./
-RUN pnpm install --production --frozen-lockfile > /dev/null
+COPY ./.npmrc ./
+
+# Install dependencies using mounted .npmrc
+RUN pnpm install --production
 
 # Uses assets from build stage to reduce build size
 FROM node:20.11-alpine3.18
@@ -20,8 +23,7 @@ COPY --from=build /app /app
 
 EXPOSE 3000
 ENV PDS_PORT=3000
-ENV NODE_ENV=production
-# potential perf issues w/ io_uring on this version of node
+ENV NODE_ENV=development
 ENV UV_USE_IO_URING=0
 
 CMD ["node", "--enable-source-maps", "index.js"]
